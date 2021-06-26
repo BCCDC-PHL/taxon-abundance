@@ -1,0 +1,11 @@
+name: species-abundance
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3
+  - fastp=0.20.1
+  - kraken2=2.1.2
+  - bracken=2.6.1
+  - csvkit=1.0.5
