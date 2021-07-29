@@ -61,6 +61,8 @@ process bracken {
 
   tag { sample_id + " / " + params.taxonomic_level }
 
+  errorStrategy 'ignore'
+
   input:
   tuple val(sample_id), path(kraken2_report), path(bracken_db)
 
@@ -68,14 +70,13 @@ process bracken {
   tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_bracken_abundances.csv")
 
   script:
-  taxonomic_level_char = params.taxonomic_level.substring(0,1)
   """
   bracken -d ${bracken_db} \
     -i ${kraken2_report} \
     -w ${sample_id}_${params.taxonomic_level}_bracken.txt \
     -o ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
     -r ${params.read_length} \
-    -l ${taxonomic_level_char}
+    -l ${params.taxonomic_level}
   head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv > bracken_abundances_header.tsv
   tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv | sort -t \$'\\t' -nrk 7,7 > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.tsv
   cat bracken_abundances_header.tsv ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.tsv | sed 's/\\t/,/g' > ${sample_id}_${params.taxonomic_level}_bracken_abundances.csv
