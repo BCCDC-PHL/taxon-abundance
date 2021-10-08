@@ -9,7 +9,7 @@ include { bracken } from './modules/species_abundance.nf'
 include { abundance_top_5 } from './modules/species_abundance.nf'
 
 workflow {
-  ch_fastq = Channel.fromFilePairs( "${params.fastq_input}/*_R{1,2}*.fastq.gz", type: 'file', maxDepth: 1)
+  ch_fastq = Channel.fromFilePairs( params.fastq_search_path, flat: true ).map{ it -> [it[0].split('_')[0], it[1], it[2]] }.unique{ it -> it[0] }
   ch_kraken_db = Channel.fromPath( "${params.kraken_db}", type: 'dir')
   ch_bracken_db = Channel.fromPath( "${params.bracken_db}", type: 'dir')
 

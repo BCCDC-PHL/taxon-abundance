@@ -3,22 +3,15 @@ process fastp {
   tag { sample_id }
 
   input:
-  tuple val(grouping_key), path(reads)
+  tuple val(sample_id), path(reads_1), path(reads_2)
 
   output:
   tuple val(sample_id), path("${sample_id}_fastp.json"), emit: fastp_json
   tuple val(sample_id), path("${sample_id}_trimmed_R1.fastq.gz"), path("${sample_id}_trimmed_R2.fastq.gz"), emit: reads
 
   script:
-  if (grouping_key =~ '_S[0-9]+_') {
-    sample_id = grouping_key.split("_S[0-9]+_")[0]
-  } else if (grouping_key =~ '_') {
-    sample_id = grouping_key.split("_")[0]
-  } else {
-    sample_id = grouping_key
-  }
   """
-  fastp -i ${reads[0]} -I ${reads[1]} -o ${sample_id}_trimmed_R1.fastq.gz -O ${sample_id}_trimmed_R2.fastq.gz
+  fastp -i ${reads_1} -I ${reads_2} -o ${sample_id}_trimmed_R1.fastq.gz -O ${sample_id}_trimmed_R2.fastq.gz
   mv fastp.json ${sample_id}_fastp.json
   """
 }
