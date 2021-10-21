@@ -12,7 +12,15 @@ def parse_bracken_report(bracken_report_path):
     with open(bracken_report_path, 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            bracken_report_lines.append(row)
+            b = {}
+            b['name'] = row['name']
+            b['taxonomy_id'] = row['taxonomy_id']
+            b['taxonomy_lvl'] = row['taxonomy_lvl']
+            b['kraken_assigned_reads'] = int(row['kraken_assigned_reads'])
+            b['added_reads'] = int(row['added_reads'])
+            b['new_est_reads'] = int(row['new_est_reads'])
+            b['fraction_total_reads'] = float(row['fraction_total_reads'])
+            bracken_report_lines.append(b)
 
     return bracken_report_lines
         
@@ -24,7 +32,7 @@ def main(args):
     bracken_report_non_unclassified = list(filter(lambda x: x['name'] != 'unclassified', bracken_report))
     
     bracken_report_sorted = sorted(bracken_report_non_unclassified, key=lambda k: k['fraction_total_reads'], reverse=True)
-    
+
     output_fields = ['sample_id', 'taxonomy_level']
     output_line = {
         'sample_id': args.sample_id,
