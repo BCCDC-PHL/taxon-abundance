@@ -50,6 +50,26 @@ process kraken2 {
   """
 }
 
+process count_unclassified_reads {
+
+  tag { sample_id }
+
+  executor 'local'
+
+  input:
+  tuple val(sample_id), path(kraken_report)
+
+  output:
+  tuple val(sample_id), path("${sample_id}_unclassified.csv")
+
+  script:
+  """
+  echo "sample_id,unclassified_reads" > ${sample_id}_unclassified.csv
+  echo "${sample_id}" \$(head -n 1 ${kraken_report} | cut -f 3) | tr ' ' ',' >> ${sample_id}_unclassified.csv
+  """
+}
+
+
 process bracken {
 
   tag { sample_id + " / " + params.taxonomic_level }
@@ -70,9 +90,14 @@ process bracken {
     -o ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
     -r ${params.read_length} \
     -l ${params.taxonomic_level}
-  head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv > bracken_abundances_header.tsv
-  tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv | sort -t \$'\\t' -nrk 7,7 > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.tsv
-  cat bracken_abundances_header.tsv ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.tsv | sed 's/\\t/,/g' > ${sample_id}_${params.taxonomic_level}_bracken_abundances.csv
+  head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv | tr \$'\\t' ',' > bracken_abundances_header.csv
+  adjust_bracken_percentages_for_unclassified_reads.py \
+    -k ${kraken2_report} \
+    -b ${sample_id}_${params.taxonomic_level}_bracken.txt \
+    -a ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
+    > ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv
+  tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv | sort -t ',' -nrk 7,7 > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv
+  cat bracken_abundances_header.csv ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv > ${sample_id}_${params.taxonomic_level}_bracken_abundances.csv
   """
 }
 
