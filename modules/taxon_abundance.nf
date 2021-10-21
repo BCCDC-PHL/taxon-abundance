@@ -50,25 +50,6 @@ process kraken2 {
   """
 }
 
-process count_unclassified_reads {
-
-  tag { sample_id }
-
-  executor 'local'
-
-  input:
-  tuple val(sample_id), path(kraken_report)
-
-  output:
-  tuple val(sample_id), path("${sample_id}_unclassified.csv")
-
-  script:
-  """
-  echo "sample_id,unclassified_reads" > ${sample_id}_unclassified.csv
-  echo "${sample_id}" \$(head -n 1 ${kraken_report} | cut -f 3) | tr ' ' ',' >> ${sample_id}_unclassified.csv
-  """
-}
-
 
 process bracken {
 
