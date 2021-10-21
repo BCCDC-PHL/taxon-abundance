@@ -5,7 +5,6 @@ nextflow.enable.dsl = 2
 include { fastp } from './modules/taxon_abundance.nf'
 include { fastp_json_to_csv } from './modules/taxon_abundance.nf'
 include { kraken2 } from './modules/taxon_abundance.nf'
-include { count_unclassified_reads } from './modules/taxon_abundance.nf'
 include { bracken } from './modules/taxon_abundance.nf'
 include { abundance_top_5 } from './modules/taxon_abundance.nf'
 
