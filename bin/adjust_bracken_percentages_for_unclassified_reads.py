@@ -65,12 +65,12 @@ def main(args):
 
     output_fieldnames = [
         'name',
-	'taxonomy_id',
-	'taxonomy_lvl',
+        'taxonomy_id',
+        'taxonomy_lvl',
         'kraken_assigned_reads',
-	'added_reads',
-	'new_est_reads',
-	'fraction_total_reads',
+        'added_reads',
+        'new_est_reads',
+        'fraction_total_reads',
     ]
 
     writer = csv.DictWriter(sys.stdout, fieldnames=output_fieldnames)
