@@ -19,5 +19,5 @@ workflow {
   fastp_json_to_csv(fastp.out.fastp_json).map{ it -> it[1] }.collectFile(name:'read_qc.csv', keepHeader: true, sort: { it.text }, storeDir: "${params.outdir}")
   kraken2(fastp.out.reads.combine(ch_kraken_db))
   bracken(kraken2.out.combine(ch_bracken_db))
-  abundance_top_5(bracken.out).map{ it -> it[1] }.collectFile(name:'abundances.csv', keepHeader: true, sort: { it.text }, storeDir: "${params.outdir}")  
+  abundance_top_5(bracken.out).map{ it -> it[1] }.collectFile(name:'abundances.csv', keepHeader: true, sort: { it.text }, storeDir: "${params.outdir}")
 }
