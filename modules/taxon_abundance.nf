@@ -50,7 +50,6 @@ process kraken2 {
   """
 }
 
-
 process bracken {
 
   tag { sample_id + " / " + params.taxonomic_level }
