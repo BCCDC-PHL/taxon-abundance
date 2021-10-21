@@ -10,7 +10,7 @@ import json
 def parse_bracken_report(bracken_report_path):
     bracken_report_lines = []
     with open(bracken_report_path, 'r') as f:
-        reader = csv.DictReader(f, dialect='unix')
+        reader = csv.DictReader(f)
         for row in reader:
             bracken_report_lines.append(row)
 
@@ -20,7 +20,10 @@ def parse_bracken_report(bracken_report_path):
 def main(args):
     bracken_report = parse_bracken_report(args.bracken_report)
 
-    bracken_report_sorted = sorted(bracken_report, key=lambda k: k['fraction_total_reads'], reverse=True)
+    bracken_report_unclassified = list(filter(lambda x: x['name'] == 'unclassified', bracken_report))[0]
+    bracken_report_non_unclassified = list(filter(lambda x: x['name'] != 'unclassified', bracken_report))
+    
+    bracken_report_sorted = sorted(bracken_report_non_unclassified, key=lambda k: k['fraction_total_reads'], reverse=True)
     
     output_fields = ['sample_id', 'taxonomy_level']
     output_line = {
@@ -58,6 +61,28 @@ def main(args):
         except IndexError as e:
             output_line[fraction_total_reads_field] = 0.0
         output_fields.append(fraction_total_reads_field)
+
+    unclassified_name_field = 'unclassified_name'
+    output_line[unclassified_name_field] = 'unclassified'
+    output_fields.append(unclassified_name_field)
+
+    unclassified_taxonomy_id_field = 'unclassified_ncbi_taxonomy_id'
+    output_line[unclassified_taxonomy_id_field] = '0'
+    output_fields.append(unclassified_taxonomy_id_field)
+
+    num_unclassified_reads_field = 'unclassified_num_assigned_reads'
+    try:
+        output_line[num_unclassified_reads_field] = bracken_report_unclassified['new_est_reads']
+    except IndexError as e:
+        output_line[num_unclassified_reads_field] = 0
+    output_fields.append(num_unclassified_reads_field)
+
+    fraction_unclassified_reads_field = 'unclassified_fraction_total_reads'
+    try:
+        output_line[fraction_unclassified_reads_field] = bracken_report_unclassified['fraction_total_reads']
+    except IndexError as e:
+        output_line[fraction_unclassified_reads_field] = 0.0
+    output_fields.append(fraction_unclassified_reads_field)
         
 
     csv.register_dialect('unix-csv-quote-minimal', delimiter=',', doublequote=False, lineterminator='\n', quoting=csv.QUOTE_MINIMAL)
