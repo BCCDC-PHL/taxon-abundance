@@ -2,7 +2,7 @@ process fastp {
 
   tag { sample_id }
 
-  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_fastp.{json,csv}"
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_fastp.{json,csv}"
 
   input:
   tuple val(sample_id), path(reads_1), path(reads_2)
@@ -23,7 +23,7 @@ process kraken2 {
 
   tag { sample_id }
 
-  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2.txt"
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2.txt"
 
   input:
   tuple val(sample_id), path(reads_1), path(reads_2), path(kraken2_db)
@@ -43,7 +43,7 @@ process bracken {
   
   errorStrategy 'ignore'
 
-  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_bracken_abundances.csv"
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_bracken_abundances.csv"
 
   input:
   tuple val(sample_id), path(kraken2_report), path(bracken_db)
@@ -76,7 +76,7 @@ process abundance_top_5 {
 
   executor 'local'
 
-  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
 
   input:
   tuple val(sample_id), path(bracken_abundances)
