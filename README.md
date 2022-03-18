@@ -21,7 +21,9 @@ nextflow run BCCDC-PHL/taxon-abundance \
 
 ## Outputs
 
-1. `abundances.csv`
+An output directory will be created for each sample. Within those directories, the main outputs are:
+
+1. `<sample_id>_<taxonomic_level>_top_5.csv`
 
 ```csv
 sample_id,taxonomy_level,abundance_1_name,abundance_1_ncbi_taxonomy_id,abundance_1_num_assigned_reads,abundance_1_fraction_total_reads,abundance_2_name,abundance_2_ncbi_taxonomy_id,abundance_2_num_assigned_reads,abundance_2_fraction_total_reads,abundance_3_name,abundance_3_ncbi_taxonomy_id,abundance_3_num_assigned_reads,abundance_3_fraction_total_reads,abundance_4_name,abundance_4_ncbi_taxonomy_id,abundance_4_num_assigned_reads,abundance_4_fraction_total_reads,abundance_5_name,abundance_5_ncbi_taxonomy_id,abundance_5_num_assigned_reads,abundance_5_fraction_total_reads
@@ -31,7 +33,7 @@ DRR161197,S,Mycobacterium simiae,1784,2068577,0.99913,Mycobacterium cookii,1775,
 DRR161199,S,Mycobacterium cookii,1775,2347528,0.99881,Mycobacterium conspicuum,44010,249,0.00011,Mycobacterium tuberculosis,1773,157,0.00007,Mycobacterium kubicae,120959,157,0.00007,Klebsiella michiganensis,1134687,153,0.00007
 ```
 
-2. `read_qc.csv`
+2. `<sample_id>_fastp.csv`
 
 ```csv
 sample_id,total_reads_before_filtering,total_reads_after_filtering,total_bases_before_filtering,total_bases_after_filtering,q20_bases_before_filtering,q20_bases_after_filtering,q30_bases_before_filtering,q30_bases_after_filtering,adapter_trimmed_reads,adapter_trimmed_bases
