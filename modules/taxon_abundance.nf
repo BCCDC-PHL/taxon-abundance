@@ -2,41 +2,28 @@ process fastp {
 
   tag { sample_id }
 
+  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_fastp.{json,csv}"
+
   input:
   tuple val(sample_id), path(reads_1), path(reads_2)
 
   output:
-  tuple val(sample_id), path("${sample_id}_fastp.json"), emit: fastp_json
+  tuple val(sample_id), path("${sample_id}_fastp.{json,csv}"), emit: fastp_reports
   tuple val(sample_id), path("${sample_id}_trimmed_R1.fastq.gz"), path("${sample_id}_trimmed_R2.fastq.gz"), emit: reads
 
   script:
   """
   fastp -i ${reads_1} -I ${reads_2} -o ${sample_id}_trimmed_R1.fastq.gz -O ${sample_id}_trimmed_R2.fastq.gz
   mv fastp.json ${sample_id}_fastp.json
-  """
-}
-
-process fastp_json_to_csv {
-
-  tag { sample_id }
-
-  executor 'local'
-
-  input:
-  tuple val(sample_id), path(fastp_json)
-
-  output:
-  tuple val(sample_id), path("${sample_id}_read_count.csv")
-
-  script:
-  """
-  fastp_json_to_csv.py -s ${sample_id} ${fastp_json} > ${sample_id}_read_count.csv
+  fastp_json_to_csv.py -s ${sample_id} ${sample_id}_fastp.json > ${sample_id}_fastp.csv
   """
 }
 
 process kraken2 {
 
   tag { sample_id }
+
+  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2.txt"
 
   input:
   tuple val(sample_id), path(reads_1), path(reads_2), path(kraken2_db)
@@ -53,8 +40,10 @@ process kraken2 {
 process bracken {
 
   tag { sample_id + " / " + params.taxonomic_level }
-
+  
   errorStrategy 'ignore'
+
+  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_bracken_abundances.csv"
 
   input:
   tuple val(sample_id), path(kraken2_report), path(bracken_db)
@@ -87,7 +76,7 @@ process abundance_top_5 {
 
   executor 'local'
 
-  cpus 1
+  publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
 
   input:
   tuple val(sample_id), path(bracken_abundances)
