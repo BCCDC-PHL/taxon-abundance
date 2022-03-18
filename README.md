@@ -21,7 +21,18 @@ nextflow run BCCDC-PHL/taxon-abundance \
 
 ## Outputs
 
-An output directory will be created for each sample. Within those directories, the main outputs are:
+An output directory will be created for each sample. Within those directories,
+
+```
+<sample_id>
+├── <sample_id>_fastp.csv
+├── <sample_id>_fastp.json
+├── <sample_id>_kraken2.txt
+├── <sample_id>_S_bracken_abundances.csv
+└── <sample_id>_S_top_5.csv
+```
+
+The main outputs are:
 
 1. `<sample_id>_<taxonomic_level>_top_5.csv`
 
@@ -41,4 +52,16 @@ DRR161190,4221278,4196834,422127800,413313356,386783970,380201636,359261515,3539
 DRR161192,3774078,3756172,377407800,369681342,345579006,339764987,321136725,316409787,248262,5936806
 DRR161197,4175044,4158344,417504400,408656988,385097573,378269116,359615124,353971246,315786,7178202
 DRR161199,4748928,4728502,474892800,463574412,436236542,427545934,406140193,398995239,389594,9277186
+```
+
+If the `--versioned_outdir` is used, then a sub-directory will be created below each sample, named with the pipeline name and minor version:
+
+```
+<sample_id>
+└── taxon-abundance-v0.1-output
+    ├── <sample_id>_fastp.csv
+    ├── <sample_id>_fastp.json
+    ├── <sample_id>_kraken2.txt
+    ├── <sample_id>_S_bracken_abundances.csv
+    └── <sample_id>_S_top_5.csv
 ```
