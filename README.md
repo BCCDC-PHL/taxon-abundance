@@ -19,6 +19,19 @@ nextflow run BCCDC-PHL/taxon-abundance \
   --outdir <output_dir>
 ```
 
+Alternatively, a 'samplesheet.csv' file may be provided with fields ID, R1, R2:
+
+```
+ID,R1,R2
+sample-01,/path/to/sample-01_R1.fastq.gz,/path/to/sample-01_R2.fastq.gz
+sample-02,/path/to/sample-02_R1.fastq.gz,/path/to/sample-02_R2.fastq.gz
+...
+```
+
+nextflow run BCCDC-PHL/taxon-abundance \
+  --samplesheet_input </path/to/samplesheet.csv> \
+  --outdir </path/to/outdir> 
+
 ## Outputs
 
 An output directory will be created for each sample. Within those directories,
