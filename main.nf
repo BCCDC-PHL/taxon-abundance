@@ -6,6 +6,8 @@ include { fastp } from './modules/taxon_abundance.nf'
 include { kraken2 } from './modules/taxon_abundance.nf'
 include { bracken } from './modules/taxon_abundance.nf'
 include { abundance_top_5 } from './modules/taxon_abundance.nf'
+include { extract_reads } from './modules/taxon_abundance.nf'
+
 
 workflow {
 
@@ -23,4 +25,9 @@ workflow {
     kraken2(fastp.out.reads.combine(ch_kraken_db))
     bracken(kraken2.out.combine(ch_bracken_db))
     abundance_top_5(bracken.out)
+
+    if (params.extract_reads) {
+      ch_to_extract = bracken.out.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
+      extract_reads(ch_fastq.join(kraken2.out).combine(ch_to_extract, by: 0))
+    }
 }

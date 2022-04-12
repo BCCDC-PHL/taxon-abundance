@@ -28,9 +28,26 @@ sample-02,/path/to/sample-02_R1.fastq.gz,/path/to/sample-02_R2.fastq.gz
 ...
 ```
 
+```
 nextflow run BCCDC-PHL/taxon-abundance \
   --samplesheet_input </path/to/samplesheet.csv> \
   --outdir </path/to/outdir> 
+```
+
+Reads can be binned by taxonomic group, and extracted to separate output files using the `--extract_reads` flag.
+When using this flag, a threshold is applied on the percentage of reads assigned to the taxonomic group, below which
+reads are not extracted. The default threshold is 1%. It can be modified using the `--extract_reads_threshold` flag.
+
+For example, to extract reads for any taxonomic group present at 0.1% or more:
+
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --extract_reads \
+  --extract_reads_threshold 0.1 \
+  --outdir </path/to/outdir> 
+```
 
 ## Outputs
 
@@ -40,7 +57,25 @@ An output directory will be created for each sample. Within those directories,
 <sample_id>
 ├── <sample_id>_fastp.csv
 ├── <sample_id>_fastp.json
-├── <sample_id>_kraken2.txt
+├── <sample_id>_kraken2_report.txt
+├── <sample_id>_S_bracken_abundances.csv
+└── <sample_id>_S_top_5.csv
+```
+
+If the `--extract_reads` flag is used, a directory named `extracted_reads_by_taxid` is created, with sub-directories named using the NCBI taxonomy ID that those reads were assigned to.
+
+```
+<sample_id>
+├── extracted_reads_by_taxid
+│   ├── 0
+│   │   ├── <sample_id>-taxid-0_R1.fastq.gz
+│   │   └── <sample_id>-taxid-0_R2.fastq.gz
+│   └── 1768
+│       ├── <sample_id>-taxid-1768_R1.fastq.gz
+│       └── <sample_id>-taxid-1768_R2.fastq.gz
+├── <sample_id>_fastp.csv
+├── <sample_id>_fastp.json
+├── <sample_id>_kraken2_report.txt
 ├── <sample_id>_S_bracken_abundances.csv
 └── <sample_id>_S_top_5.csv
 ```
@@ -74,7 +109,7 @@ If the `--versioned_outdir` is used, then a sub-directory will be created below 
 └── taxon-abundance-v0.1-output
     ├── <sample_id>_fastp.csv
     ├── <sample_id>_fastp.json
-    ├── <sample_id>_kraken2.txt
+    ├── <sample_id>_kraken2_report.txt
     ├── <sample_id>_S_bracken_abundances.csv
     └── <sample_id>_S_top_5.csv
 ```

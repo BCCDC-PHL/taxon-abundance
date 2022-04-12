@@ -23,17 +23,17 @@ process kraken2 {
 
   tag { sample_id }
 
-  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2.txt"
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2_report.txt"
 
   input:
   tuple val(sample_id), path(reads_1), path(reads_2), path(kraken2_db)
 
   output:
-  tuple val(sample_id), path("${sample_id}_kraken2.txt")
+  tuple val(sample_id), path("${sample_id}_kraken2_output.tsv"), path("${sample_id}_kraken2_report.txt")
 
   script:
   """
-  kraken2 --db ${kraken2_db} --threads ${task.cpus} --output "-" --report ${sample_id}_kraken2.txt --paired ${reads_1} ${reads_2}
+  kraken2 --db ${kraken2_db} --threads ${task.cpus} --output ${sample_id}_kraken2_output.tsv --report ${sample_id}_kraken2_report.txt --paired ${reads_1} ${reads_2}
   """
 }
 
@@ -46,7 +46,7 @@ process bracken {
   publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_bracken_abundances.csv"
 
   input:
-  tuple val(sample_id), path(kraken2_report), path(bracken_db)
+  tuple val(sample_id), path(kraken2_output), path(kraken2_report), path(bracken_db)
 
   output:
   tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_bracken_abundances.csv")
@@ -59,13 +59,15 @@ process bracken {
     -o ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
     -r ${params.read_length} \
     -l ${params.taxonomic_level}
-  head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv | tr \$'\\t' ',' > bracken_abundances_header.csv
+  paste <(echo "sample_id") <(head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv) | tr \$'\\t' ',' > bracken_abundances_header.csv
   adjust_bracken_percentages_for_unclassified_reads.py \
     -k ${kraken2_report} \
     -b ${sample_id}_${params.taxonomic_level}_bracken.txt \
     -a ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
     > ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv
-  tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv | sort -t ',' -nrk 7,7 > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv
+  tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv | \
+    sort -t ',' -nrk 7,7 | \
+    awk -F ',' 'BEGIN {OFS=FS}; {print "${sample_id}",\$0}' > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv
   cat bracken_abundances_header.csv ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv > ${sample_id}_${params.taxonomic_level}_bracken_abundances.csv
   """
 }
@@ -87,5 +89,34 @@ process abundance_top_5 {
   script:
   """
   bracken_top_n_linelist.py ${bracken_abundances} -n 5 -s ${sample_id} > ${sample_id}_${params.taxonomic_level}_top_5.csv
+  """
+}
+
+process extract_reads {
+
+  tag { sample_id + ' / ' + taxid }
+
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output/extracted_reads_by_taxid" : "${params.outdir}/${sample_id}/extracted_reads_by_taxid", mode: 'copy', pattern: "${taxid}"
+
+  input:
+  tuple val(sample_id), path(reads_1), path(reads_2), path(kraken2_output), path(kraken2_report), val(taxid)
+
+  output:
+  tuple val(sample_id), val(taxid), path("${taxid}", type: "dir")
+
+  script:
+  """
+  mkdir ${taxid}
+  extract_kraken_reads.py \
+    -k ${kraken2_output} \
+    -r ${kraken2_report} \
+    -1 ${reads_1} \
+    -2 ${reads_2} \
+    --taxid ${taxid} \
+    --fastq-output \
+    -o ${taxid}/${sample_id}-taxid-${taxid}_R1.fastq \
+    -o2 ${taxid}/${sample_id}-taxid-${taxid}_R2.fastq \
+    --include-children
+  gzip ${taxid}/*.fastq
   """
 }

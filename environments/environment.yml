@@ -8,4 +8,5 @@ dependencies:
   - fastp=0.20.1
   - kraken2=2.1.2
   - bracken=2.6.1
+  - krakentools=1.2
   - csvkit=1.0.5
