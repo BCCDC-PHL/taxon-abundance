@@ -57,7 +57,7 @@ An output directory will be created for each sample. Within those directories,
 <sample_id>
 ├── <sample_id>_fastp.csv
 ├── <sample_id>_fastp.json
-├── <sample_id>_kraken2.txt
+├── <sample_id>_kraken2_report.txt
 ├── <sample_id>_S_bracken_abundances.csv
 └── <sample_id>_S_top_5.csv
 ```
@@ -75,7 +75,7 @@ If the `--extract_reads` flag is used, a directory named `extracted_reads_by_tax
 │       └── <sample_id>-taxid-1768_R2.fastq.gz
 ├── <sample_id>_fastp.csv
 ├── <sample_id>_fastp.json
-├── <sample_id>_kraken2.txt
+├── <sample_id>_kraken2_report.txt
 ├── <sample_id>_S_bracken_abundances.csv
 └── <sample_id>_S_top_5.csv
 ```
@@ -109,7 +109,7 @@ If the `--versioned_outdir` is used, then a sub-directory will be created below 
 └── taxon-abundance-v0.1-output
     ├── <sample_id>_fastp.csv
     ├── <sample_id>_fastp.json
-    ├── <sample_id>_kraken2.txt
+    ├── <sample_id>_kraken2_report.txt
     ├── <sample_id>_S_bracken_abundances.csv
     └── <sample_id>_S_top_5.csv
 ```
