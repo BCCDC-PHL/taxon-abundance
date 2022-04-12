@@ -13,6 +13,7 @@ def parse_bracken_report(bracken_report_path):
         reader = csv.DictReader(f)
         for row in reader:
             b = {}
+            b['sample_id'] = row['sample_id']
             b['name'] = row['name']
             b['taxonomy_id'] = row['taxonomy_id']
             b['taxonomy_lvl'] = row['taxonomy_lvl']
