@@ -1,4 +1,4 @@
-name: species-abundance
+name: taxon-abundance
 channels:
   - conda-forge
   - bioconda

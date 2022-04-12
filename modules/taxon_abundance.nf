@@ -10,9 +10,12 @@ process fastp {
   output:
   tuple val(sample_id), path("${sample_id}_fastp.{json,csv}"), emit: fastp_reports
   tuple val(sample_id), path("${sample_id}_trimmed_R1.fastq.gz"), path("${sample_id}_trimmed_R2.fastq.gz"), emit: reads
+  tuple val(sample_id), path("${sample_id}_fastp_provenance.yml"), emit: provenance
 
   script:
   """
+  printf -- "- process_name: fastp\\n" > ${sample_id}_fastp_provenance.yml
+  printf -- "  tool_name: fastp\\n  tool_version: \$(fastp --version 2>&1 | cut -d ' ' -f 2)\\n" >> ${sample_id}_fastp_provenance.yml
   fastp -i ${reads_1} -I ${reads_2} -o ${sample_id}_trimmed_R1.fastq.gz -O ${sample_id}_trimmed_R2.fastq.gz
   mv fastp.json ${sample_id}_fastp.json
   fastp_json_to_csv.py -s ${sample_id} ${sample_id}_fastp.json > ${sample_id}_fastp.csv
@@ -29,10 +32,14 @@ process kraken2 {
   tuple val(sample_id), path(reads_1), path(reads_2), path(kraken2_db)
 
   output:
-  tuple val(sample_id), path("${sample_id}_kraken2_output.tsv"), path("${sample_id}_kraken2_report.txt")
+  tuple val(sample_id), path("${sample_id}_kraken2_output.tsv"), path("${sample_id}_kraken2_report.txt"), emit: report
+  tuple val(sample_id), path("${sample_id}_kraken2_provenance.yml"), emit: provenance
 
   script:
   """
+  printf -- "- process_name: kraken2\\n" > ${sample_id}_kraken2_provenance.yml
+  printf -- "  tool_name: kraken2\\n  tool_version: \$(kraken2 --version | grep 'version' | cut -d ' ' -f 3)\\n" >> ${sample_id}_kraken2_provenance.yml
+  printf -- "  database_path: \$(readlink -f ${kraken2_db})\\n" >> ${sample_id}_kraken2_provenance.yml
   kraken2 --db ${kraken2_db} --threads ${task.cpus} --output ${sample_id}_kraken2_output.tsv --report ${sample_id}_kraken2_report.txt --paired ${reads_1} ${reads_2}
   """
 }
@@ -49,10 +56,14 @@ process bracken {
   tuple val(sample_id), path(kraken2_output), path(kraken2_report), path(bracken_db)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_bracken_abundances.csv")
+  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_bracken_abundances.csv"), emit: abundances
+  tuple val(sample_id), path("${sample_id}_bracken_provenance.yml"), emit: provenance
 
   script:
   """
+  printf -- "- process_name: bracken\\n" > ${sample_id}_bracken_provenance.yml
+  printf -- "  tool_name: bracken\\n  tool_version: 2.6.1\\n" >> ${sample_id}_bracken_provenance.yml
+  printf -- "  database_path: \$(readlink -f ${bracken_db})\\n" >> ${sample_id}_bracken_provenance.yml
   bracken -d ${bracken_db} \
     -i ${kraken2_report} \
     -w ${sample_id}_${params.taxonomic_level}_bracken.txt \
