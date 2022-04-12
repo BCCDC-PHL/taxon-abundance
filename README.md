@@ -113,3 +113,29 @@ If the `--versioned_outdir` is used, then a sub-directory will be created below 
     ├── <sample_id>_S_bracken_abundances.csv
     └── <sample_id>_S_top_5.csv
 ```
+
+### Provenance files
+For each pipeline invocation, each sample will produce a `provenance.yml` file with the following contents:
+
+```yml
+- process_name: fastp
+  tool_name: fastp
+  tool_version: 0.20.1
+- process_name: kraken2
+  tool_name: kraken2
+  tool_version: 2.1.2
+  database_path: /path/to/2021-05-17_standard
+- process_name: bracken
+  tool_name: bracken
+  tool_version: 2.6.1
+  database_path: /path/to/2021-05-17_standard
+- input_filename: sample-01_R1.fastq.gz
+  sha256: 4ac3055acgf03114a005aff033e7016ea98486cbebdae169880e3f0511ed21bb
+- input_filename: sample-01_R2.fastq.gz
+  sha256: 8db388f56c51920750319c67b5308c7e99f2a566ca83311037c425f8d6bb1ecc
+- pipeline_name: BCCDC-PHL/taxon-abundance
+  pipeline_version: 0.1.0
+- timestamp_analysis_start: 2021-11-25T16:53:10.549863
+```
+
+The filename of the provenance file includes a timestamp with format `YYYYMMDDHHMMSS` to ensure that re-analysis of the same sample will create a unique `provenance.yml` file.
