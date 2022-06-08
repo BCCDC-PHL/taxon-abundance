@@ -39,7 +39,7 @@ workflow {
     abundance_top_5(bracken.out.abundances)
 
     if (params.extract_reads) {
-      ch_to_extract = bracken.out.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
+      ch_to_extract = bracken.out.abundances.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
       extract_reads(ch_fastq.join(kraken2.out.report).combine(ch_to_extract, by: 0))
     }
 
