@@ -40,7 +40,14 @@ process kraken2 {
   printf -- "- process_name: kraken2\\n" > ${sample_id}_kraken2_provenance.yml
   printf -- "  tool_name: kraken2\\n  tool_version: \$(kraken2 --version | grep 'version' | cut -d ' ' -f 3)\\n" >> ${sample_id}_kraken2_provenance.yml
   printf -- "  database_path: \$(readlink -f ${kraken2_db})\\n" >> ${sample_id}_kraken2_provenance.yml
-  kraken2 --db ${kraken2_db} --threads ${task.cpus} --output ${sample_id}_kraken2_output.tsv --report ${sample_id}_kraken2_report.txt --paired ${reads_1} ${reads_2}
+
+  kraken2 \
+    --db ${kraken2_db} \
+    --threads ${task.cpus} \
+    --confidence ${params.confidence} \
+    --output ${sample_id}_kraken2_output.tsv \
+    --report ${sample_id}_kraken2_report.txt \
+    --paired ${reads_1} ${reads_2}
   """
 }
 
