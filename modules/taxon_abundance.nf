@@ -110,6 +110,28 @@ process abundance_top_5 {
   """
 }
 
+process abundance_top_5_kraken {
+
+  tag { sample_id + " / " + params.taxonomic_level }
+
+  executor 'local'
+
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
+
+  input:
+  tuple val(sample_id), path(kraken_output), path(kraken_report)
+
+  output:
+  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_top_5.csv")
+
+  script:
+  """
+  kraken_top_n_linelist.py ${kraken_report} -n 5 -s ${sample_id} --taxonomy-lvl ${params.taxonomic_level} > ${sample_id}_${params.taxonomic_level}_top_5.csv
+  """
+
+}
+
+
 process extract_reads {
 
   tag { sample_id + ' / ' + taxid }
