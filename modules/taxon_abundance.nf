@@ -132,6 +132,28 @@ process abundance_top_5_kraken {
 }
 
 
+process kraken_abundances {
+
+  tag { sample_id + " / " + params.taxonomic_level }
+
+  executor 'local'
+
+  publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_kraken2_abundances.csv"
+
+  input:
+  tuple val(sample_id), path(kraken_output), path(kraken_report)
+
+  output:
+  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_kraken2_abundances.csv")
+
+  script:
+  """
+  kraken_abundances.py ${kraken_report} -s ${sample_id} --taxonomy-lvl ${params.taxonomic_level} > ${sample_id}_${params.taxonomic_level}_kraken2_abundances.csv
+  """
+
+}
+
+
 process extract_reads {
 
   tag { sample_id + ' / ' + taxid }

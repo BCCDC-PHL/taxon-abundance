@@ -10,6 +10,7 @@ include { kraken2 }                from './modules/taxon_abundance.nf'
 include { bracken }                from './modules/taxon_abundance.nf'
 include { abundance_top_5 }        from './modules/taxon_abundance.nf'
 include { abundance_top_5_kraken } from './modules/taxon_abundance.nf'
+include { kraken_abundances }      from './modules/taxon_abundance.nf'
 include { extract_reads }          from './modules/taxon_abundance.nf'
 include { pipeline_provenance }    from './modules/provenance.nf'
 include { collect_provenance }     from './modules/provenance.nf'
@@ -41,13 +42,15 @@ workflow {
 
     if (!params.skip_bracken) {
       bracken(kraken2.out.report.combine(ch_bracken_db))
-      ch_abundances = abundance_top_5(bracken.out.abundances)
+      abundance_top_5(bracken.out.abundances)
+      ch_abundances = bracken.out.abundances
     } else {
-      ch_abundances = abundance_top_5_kraken(kraken2.out.report)
+      abundance_top_5_kraken(kraken2.out.report)
+      ch_abundances = kraken_abundances(kraken2.out.report)
     }
 
     if (params.extract_reads) {
-      ch_to_extract = ch_abundances.abundances.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
+      ch_to_extract = ch_abundances.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
       extract_reads(ch_fastq.join(kraken2.out.report).combine(ch_to_extract, by: 0))
     }
 
