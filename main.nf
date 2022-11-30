@@ -4,14 +4,16 @@ import java.time.LocalDateTime
 
 nextflow.enable.dsl = 2
 
-include { hash_files } from './modules/hash_files.nf'
-include { fastp } from './modules/taxon_abundance.nf'
-include { kraken2 } from './modules/taxon_abundance.nf'
-include { bracken } from './modules/taxon_abundance.nf'
-include { abundance_top_5 } from './modules/taxon_abundance.nf'
-include { extract_reads } from './modules/taxon_abundance.nf'
-include { pipeline_provenance } from './modules/provenance.nf'
-include { collect_provenance } from './modules/provenance.nf'
+include { hash_files }             from './modules/hash_files.nf'
+include { fastp }                  from './modules/taxon_abundance.nf'
+include { kraken2 }                from './modules/taxon_abundance.nf'
+include { bracken }                from './modules/taxon_abundance.nf'
+include { abundance_top_5 }        from './modules/taxon_abundance.nf'
+include { abundance_top_5_kraken } from './modules/taxon_abundance.nf'
+include { kraken_abundances }      from './modules/taxon_abundance.nf'
+include { extract_reads }          from './modules/taxon_abundance.nf'
+include { pipeline_provenance }    from './modules/provenance.nf'
+include { collect_provenance }     from './modules/provenance.nf'
 
 
 workflow {
@@ -33,19 +35,32 @@ workflow {
 
   main:
     hash_files(ch_fastq.map{ it -> [it[0], [it[1], it[2]]] }.combine(Channel.of("fastq-input")))
+
     fastp(ch_fastq)
+
     kraken2(fastp.out.reads.combine(ch_kraken_db))
-    bracken(kraken2.out.report.combine(ch_bracken_db))
-    abundance_top_5(bracken.out.abundances)
+
+    if (!params.skip_bracken) {
+      bracken(kraken2.out.report.combine(ch_bracken_db))
+      abundance_top_5(bracken.out.abundances)
+      ch_abundances = bracken.out.abundances
+    } else {
+      abundance_top_5_kraken(kraken2.out.report)
+      ch_abundances = kraken_abundances(kraken2.out.report)
+    }
 
     if (params.extract_reads) {
-      ch_to_extract = bracken.out.abundances.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
+      ch_to_extract = ch_abundances.map{ it -> it[1] }.splitCsv(header: true).filter{ it -> Float.parseFloat(it['fraction_total_reads']) > params.extract_reads_threshold }.map{ it -> [it['sample_id'], it['taxonomy_id']] }
       extract_reads(ch_fastq.join(kraken2.out.report).combine(ch_to_extract, by: 0))
     }
 
     ch_provenance = fastp.out.provenance
+
     ch_provenance = ch_provenance.join(kraken2.out.provenance).map{ it -> [it[0], [it[1], it[2]]] }
-    ch_provenance = ch_provenance.join(bracken.out.provenance).map{ it -> [it[0], it[1] << it[2]] }
+
+    if (!params.skip_bracken) {
+      ch_provenance = ch_provenance.join(bracken.out.provenance).map{ it -> [it[0], it[1] << it[2]] }
+    }
     
     ch_provenance = ch_provenance.join(hash_files.out.provenance).map{ it -> [it[0], it[1] << it[2]] }
     ch_provenance = ch_provenance.join(ch_fastq.map{ it -> it[0] }.combine(ch_pipeline_provenance)).map{ it -> [it[0], it[1] << it[2]] }
