@@ -34,6 +34,8 @@ nextflow run BCCDC-PHL/taxon-abundance \
   --outdir </path/to/outdir> 
 ```
 
+### Extracting reads by taxonomic ID
+
 Reads can be binned by taxonomic group, and extracted to separate output files using the `--extract_reads` flag.
 When using this flag, a threshold is applied on the percentage of reads assigned to the taxonomic group, below which
 reads are not extracted. The default threshold is 1%. It can be modified using the `--extract_reads_threshold` flag.
@@ -48,6 +50,24 @@ nextflow run BCCDC-PHL/taxon-abundance \
   --extract_reads_threshold 0.1 \
   --outdir </path/to/outdir> 
 ```
+
+### Skipping Bracken
+
+By default, [bracken](https://github.com/jenniferlu717/Bracken) is used to re-estimate the read abundances for each taxonomic group,
+at a specific taxonomic level (Genus, Species, etc.).
+
+If desired, bracken can be skipped with the `--skip_bracken` flag:
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --skip_bracken \
+  --outdir </path/to/outdir> 
+```
+
+When the `--skip_bracken` flag is used, abundances will be calculated directly from the kraken2 report. Note that the abundance
+estimates directly from kraken2 reports may under-estimate the actual abundances. Detailed rationale for including bracken analysis
+can be found in the [bracken paper](https://peerj.com/articles/cs-104/).
 
 ## Outputs
 
