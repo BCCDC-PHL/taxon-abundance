@@ -54,6 +54,17 @@ workflow {
       extract_reads(ch_fastq.join(kraken2.out.report).combine(ch_to_extract, by: 0))
     }
 
+    if (params.collect_outputs) {
+      fastp.out.csv.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_fastp.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
+      if (!params.skip_bracken) {
+        ch_abundances.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_bracken_abundances.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] })
+        abundance_top_5.out.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_bracken_abundances_top_5.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
+      } else {
+        ch_abundances.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_kraken_abundances.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] })
+        abundance_top_5_kraken.out.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_kraken_abundances_top_5.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
+      }
+    }
+
     ch_provenance = fastp.out.provenance
 
     ch_provenance = ch_provenance.join(kraken2.out.provenance).map{ it -> [it[0], [it[1], it[2]]] }

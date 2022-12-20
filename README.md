@@ -69,6 +69,26 @@ When the `--skip_bracken` flag is used, abundances will be calculated directly f
 estimates directly from kraken2 reports may under-estimate the actual abundances. Detailed rationale for including bracken analysis
 can be found in the [bracken paper](https://peerj.com/articles/cs-104/).
 
+### Collecting Outputs
+
+By default, separate output files will be created for each sample, in independent output sub-directories under the directory provided with the `--outdir` flag.
+
+To generate summary files for all samples, add the `--collect_outputs` flag. The following files will be written to the output dir:
+
+```
+collected_<taxonomic_level>_<kraken|bracken>_abundances.csv
+collected_<taxonomic_level>_<kraken|bracken>_abundances_top_5.csv
+collected_fastp.csv
+```
+
+An alternative prefix (instead of `collected`) may be supplied using the `--collected_outputs_prefix` flag. For example, with `--collected_outputs_prefix test`:
+
+```
+test_<taxonomic_level>_<kraken|bracken>_abundances.csv
+test_<taxonomic_level>_<kraken|bracken>_abundances_top_5.csv
+test_fastp.csv
+```
+
 ## Outputs
 
 An output directory will be created for each sample. Within those directories,
