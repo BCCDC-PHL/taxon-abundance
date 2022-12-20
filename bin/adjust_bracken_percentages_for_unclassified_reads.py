@@ -73,7 +73,7 @@ def main(args):
         'fraction_total_reads',
     ]
 
-    writer = csv.DictWriter(sys.stdout, fieldnames=output_fieldnames)
+    writer = csv.DictWriter(sys.stdout, fieldnames=output_fieldnames, dialect='unix', quoting=csv.QUOTE_MINIMAL)
     writer.writeheader()
     
     for b in bracken_abundances:
