@@ -16,7 +16,6 @@ include { pipeline_provenance }    from './modules/provenance.nf'
 include { collect_provenance }     from './modules/provenance.nf'
 include { bracken_subspeciation }                from './modules/subspeciation_taxon_abundance.nf'
 include { abundance_top_5_subspeciation }        from './modules/subspeciation_taxon_abundance.nf'
-include { abundance_top_5_kraken_subspeciation } from './modules/subspeciation_taxon_abundance.nf'
 
 workflow {
 
