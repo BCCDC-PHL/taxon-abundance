@@ -34,6 +34,35 @@ nextflow run BCCDC-PHL/taxon-abundance \
   --outdir </path/to/outdir> 
 ```
 
+### Taxonomic levels
+
+By default, results will be summarized at the species level (`S`). Other taxonomic levels can be specified using the `--taxonomic_level` flag. For example, to collect results for the genus level (`G`):
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --taxonomic_level G \
+  --outdir <output_dir>
+```
+
+Multiple taxonomic levels may be provided in a comma-separated list. For example:
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --taxonomic_level G,S \
+  --outdir <output_dir>
+```
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --taxonomic_level S,S1 \
+  --outdir <output_dir>
+```
+
+
+
 ### Extracting reads by taxonomic ID
 
 Reads can be binned by taxonomic group, and extracted to separate output files using the `--extract_reads` flag.
@@ -169,6 +198,7 @@ For each pipeline invocation, each sample will produce a `provenance.yml` file w
   tool_name: bracken
   tool_version: 2.6.1
   database_path: /path/to/2021-05-17_standard
+  taxonomic_level: S
 - input_filename: sample-01_R1.fastq.gz
   sha256: 4ac3055acgf03114a005aff033e7016ea98486cbebdae169880e3f0511ed21bb
 - input_filename: sample-01_R2.fastq.gz
