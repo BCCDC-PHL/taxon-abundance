@@ -54,17 +54,17 @@ process kraken2 {
 
 process bracken {
 
-  tag { sample_id + " / " + params.taxonomic_level }
+  tag { sample_id + " / " + taxonomic_level }
   
   errorStrategy 'ignore'
 
   publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_bracken_abundances.csv"
 
   input:
-  tuple val(sample_id), path(kraken2_output), path(kraken2_report), path(bracken_db)
+  tuple val(sample_id), path(kraken2_output), path(kraken2_report), path(bracken_db), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_bracken_abundances.csv"), emit: abundances
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_bracken_abundances.csv"), val(taxonomic_level), emit: abundances
   tuple val(sample_id), path("${sample_id}_bracken_provenance.yml"), emit: provenance
 
   script:
@@ -72,66 +72,68 @@ process bracken {
   printf -- "- process_name: bracken\\n" > ${sample_id}_bracken_provenance.yml
   printf -- "  tool_name: bracken\\n  tool_version: 2.6.1\\n" >> ${sample_id}_bracken_provenance.yml
   printf -- "  database_path: \$(readlink -f ${bracken_db})\\n" >> ${sample_id}_bracken_provenance.yml
+  printf -- "  taxonomic_level: ${taxonomic_level}\\n" >> ${sample_id}_bracken_provenance.yml
+
   bracken -d ${bracken_db} \
     -i ${kraken2_report} \
-    -w ${sample_id}_${params.taxonomic_level}_bracken.txt \
-    -o ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
+    -w ${sample_id}_${taxonomic_level}_bracken.txt \
+    -o ${sample_id}_${taxonomic_level}_bracken_abundances_unsorted.tsv \
     -r ${params.read_length} \
-    -l ${params.taxonomic_level}
+    -l ${taxonomic_level}
 
-  paste <(echo "sample_id") <(head -n 1 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv) | tr \$'\\t' ',' > bracken_abundances_header.csv
+  paste <(echo "sample_id") <(head -n 1 ${sample_id}_${taxonomic_level}_bracken_abundances_unsorted.tsv) | tr \$'\\t' ',' > bracken_abundances_header.csv
 
   adjust_bracken_percentages_for_unclassified_reads.py \
     -k ${kraken2_report} \
-    -b ${sample_id}_${params.taxonomic_level}_bracken.txt \
-    -a ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted.tsv \
-    > ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv
+    -b ${sample_id}_${taxonomic_level}_bracken.txt \
+    -a ${sample_id}_${taxonomic_level}_bracken_abundances_unsorted.tsv \
+    > ${sample_id}_${taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv
 
-  tail -n+2 ${sample_id}_${params.taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv | \
+  tail -n+2 ${sample_id}_${taxonomic_level}_bracken_abundances_unsorted_with_unclassified.csv | \
     sort -t ',' -nrk 7,7 | \
-    awk -F ',' 'BEGIN {OFS=FS}; {print "${sample_id}",\$0}' > ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv
+    awk -F ',' 'BEGIN {OFS=FS}; {print "${sample_id}",\$0}' > ${sample_id}_${taxonomic_level}_bracken_abundances_data.csv
 
-  cat bracken_abundances_header.csv ${sample_id}_${params.taxonomic_level}_bracken_abundances_data.csv > ${sample_id}_${params.taxonomic_level}_bracken_abundances.csv
+  cat bracken_abundances_header.csv ${sample_id}_${taxonomic_level}_bracken_abundances_data.csv > ${sample_id}_${taxonomic_level}_bracken_abundances.csv
   """
 }
 
 process abundance_top_5 {
 
-  tag { sample_id + " / " + params.taxonomic_level }
+  tag { sample_id + " / " + taxonomic_level }
 
   executor 'local'
 
   publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
 
   input:
-  tuple val(sample_id), path(bracken_abundances)
+  tuple val(sample_id), path(bracken_abundances), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_top_5.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv"), val(taxonomic_level)
 
   script:
   """
-  bracken_top_n_linelist.py ${bracken_abundances} -n 5 -s ${sample_id} > ${sample_id}_${params.taxonomic_level}_top_5.csv
+  bracken_top_n_linelist.py ${bracken_abundances} -n 5 -s ${sample_id} > ${sample_id}_${taxonomic_level}_top_5.csv
   """
 }
 
 process abundance_top_5_kraken {
 
-  tag { sample_id + " / " + params.taxonomic_level }
+  tag { sample_id + " / " + taxonomic_level }
 
   executor 'local'
 
   publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_top_5.csv"
 
   input:
-  tuple val(sample_id), path(kraken_output), path(kraken_report)
+  tuple val(sample_id), path(kraken_output), path(kraken_report), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_top_5.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv"), val(taxonomic_level)
 
   script:
   """
-  kraken_top_n_linelist.py ${kraken_report} -n 5 -s ${sample_id} --taxonomy-lvl ${params.taxonomic_level} > ${sample_id}_${params.taxonomic_level}_top_5.csv
+  kraken_top_n_linelist.py ${kraken_report} -n 5 -s ${sample_id} --taxonomy-lvl ${taxonomic_level} > ${sample_id}_${taxonomic_level}_top_5.csv
   """
 
 }
@@ -139,21 +141,21 @@ process abundance_top_5_kraken {
 
 process kraken_abundances {
 
-  tag { sample_id + " / " + params.taxonomic_level }
+  tag { sample_id + " / " + taxonomic_level }
 
   executor 'local'
 
   publishDir params.versioned_outdir ? "${params.outdir}/${sample_id}/${params.pipeline_short_name}-v${params.pipeline_minor_version}-output" : "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_*_kraken2_abundances.csv"
 
   input:
-  tuple val(sample_id), path(kraken_output), path(kraken_report)
+  tuple val(sample_id), path(kraken_output), path(kraken_report), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${params.taxonomic_level}_kraken2_abundances.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_kraken2_abundances.csv"), val(taxonomic_level)
 
   script:
   """
-  kraken_abundances.py ${kraken_report} -s ${sample_id} --taxonomy-lvl ${params.taxonomic_level} > ${sample_id}_${params.taxonomic_level}_kraken2_abundances.csv
+  kraken_abundances.py ${kraken_report} -s ${sample_id} --taxonomy-lvl ${taxonomic_level} > ${sample_id}_${taxonomic_level}_kraken2_abundances.csv
   """
 
 }
