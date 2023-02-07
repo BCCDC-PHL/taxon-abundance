@@ -32,6 +32,7 @@ workflow {
 
   ch_kraken_db = Channel.fromPath( "${params.kraken_db}", type: 'dir')
   ch_bracken_db = Channel.fromPath( "${params.bracken_db}", type: 'dir')
+  ch_taxonomic_levels = Channel.of(params.taxonomic_level.split(',')).unique()
 
   main:
     hash_files(ch_fastq.map{ it -> [it[0], [it[1], it[2]]] }.combine(Channel.of("fastq-input")))
@@ -41,12 +42,12 @@ workflow {
     kraken2(fastp.out.reads.combine(ch_kraken_db))
 
     if (!params.skip_bracken) {
-      bracken(kraken2.out.report.combine(ch_bracken_db))
-      abundance_top_5(bracken.out.abundances)
+      bracken(kraken2.out.report.combine(ch_bracken_db).combine(ch_taxonomic_levels))
+      abundance_top_5(bracken.out.abundances.combine(ch_taxonomic_levels))
       ch_abundances = bracken.out.abundances
     } else {
-      abundance_top_5_kraken(kraken2.out.report)
-      ch_abundances = kraken_abundances(kraken2.out.report)
+      abundance_top_5_kraken(kraken2.out.report.combine(ch_taxonomic_levels))
+      ch_abundances = kraken_abundances(kraken2.out.report.combine(ch_taxonomic_levels))
     }
 
     if (params.extract_reads) {
