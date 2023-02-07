@@ -64,7 +64,7 @@ process bracken {
   tuple val(sample_id), path(kraken2_output), path(kraken2_report), path(bracken_db), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_bracken_abundances.csv"), emit: abundances
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_bracken_abundances.csv"), val(taxonomic_level), emit: abundances
   tuple val(sample_id), path("${sample_id}_bracken_provenance.yml"), emit: provenance
 
   script:
@@ -109,7 +109,7 @@ process abundance_top_5 {
   tuple val(sample_id), path(bracken_abundances), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv"), val(taxonomic_level)
 
   script:
   """
@@ -129,7 +129,7 @@ process abundance_top_5_kraken {
   tuple val(sample_id), path(kraken_output), path(kraken_report), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_top_5.csv"), val(taxonomic_level)
 
   script:
   """
@@ -151,7 +151,7 @@ process kraken_abundances {
   tuple val(sample_id), path(kraken_output), path(kraken_report), val(taxonomic_level)
 
   output:
-  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_kraken2_abundances.csv")
+  tuple val(sample_id), path("${sample_id}_${taxonomic_level}_kraken2_abundances.csv"), val(taxonomic_level)
 
   script:
   """

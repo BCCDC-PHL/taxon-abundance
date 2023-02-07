@@ -43,7 +43,7 @@ workflow {
 
     if (!params.skip_bracken) {
       bracken(kraken2.out.report.combine(ch_bracken_db).combine(ch_taxonomic_levels))
-      abundance_top_5(bracken.out.abundances.combine(ch_taxonomic_levels))
+      abundance_top_5(bracken.out.abundances)
       ch_abundances = bracken.out.abundances
     } else {
       abundance_top_5_kraken(kraken2.out.report.combine(ch_taxonomic_levels))
@@ -58,11 +58,11 @@ workflow {
     if (params.collect_outputs) {
       fastp.out.csv.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_fastp.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
       if (!params.skip_bracken) {
-        ch_abundances.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_bracken_abundances.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] })
-        abundance_top_5.out.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_bracken_abundances_top_5.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
+        ch_abundances.collectFile(storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] }){ it -> [params.collected_outputs_prefix + "_" + it[2] + "_bracken_abundances.csv", it[1]] }
+        abundance_top_5.out.collectFile(storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] }){ it -> [params.collected_outputs_prefix + "_" + it[2] + "_bracken_abundances_top_5.csv", it[1]] }
       } else {
-        ch_abundances.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_kraken_abundances.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] })
-        abundance_top_5_kraken.out.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_" + params.taxonomic_level + "_kraken_abundances_top_5.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
+        ch_abundances.collectFile(storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1].split(',')[0] }){ it -> [params.collected_outputs_prefix + "_" + it[2] + "_kraken_abundances.csv", it[1]] }
+        abundance_top_5_kraken.out.collectFile(storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] }){ it -> [params.collected_outputs_prefix + "_" + it[2] + "_kraken_abundances_top_5.csv", it[1]] }
       }
     }
 
