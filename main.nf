@@ -27,8 +27,6 @@ workflow {
 	workflow.start,
     ])
 
-    ch_pipeline_provenance = pipeline_provenance(ch_workflow_metadata)
-
     if (params.samplesheet_input != 'NO_FILE') {
 	ch_fastq = Channel.fromPath(params.samplesheet_input).splitCsv(header: true).map{ it -> [it['ID'], it['R1'], it['R2']] }
     } else {
@@ -71,16 +69,22 @@ workflow {
 	}
     }
 
-    ch_provenance = fastp.out.provenance
-
-    ch_provenance = ch_provenance.join(kraken2.out.provenance).map{ it -> [it[0], [it[1], it[2]]] }
+    // Collect Provenance
+    // The basic idea is to build up a channel with the following structure:
+    // [sample_id, [provenance_file_1.yml, provenance_file_2.yml, provenance_file_3.yml...]]
+    // At each step, we add another provenance file to the list using the << operator...
+    // ...and then concatenate them all together in the 'collect_provenance' process.
+    ch_sample_ids = ch_fastq.map{ it -> it[0] }
+    ch_provenance = ch_sample_ids
+    ch_pipeline_provenance = pipeline_provenance(ch_workflow_metadata)
+    ch_provenance = ch_provenance.combine(ch_pipeline_provenance).map{ it ->     [it[0], [it[1]]] }
+    ch_provenance = ch_provenance.join(hash_files.out.provenance).map{ it ->     [it[0], it[1] << it[2]] }
+    ch_provenance = ch_provenance.join(fastp.out.provenance).map{ it ->          [it[0], it[1] << it[2]] }
+    ch_provenance = ch_provenance.join(kraken2.out.provenance).map{ it ->        [it[0], it[1] << it[2]] }
 
     if (!params.skip_bracken) {
-	ch_provenance = ch_provenance.join(bracken.out.provenance).map{ it -> [it[0], it[1] << it[2]] }
+	ch_provenance = ch_provenance.join(bracken.out.provenance).map{ it ->    [it[0], it[1] << it[2]] }
     }
-    
-    ch_provenance = ch_provenance.join(hash_files.out.provenance).map{ it -> [it[0], it[1] << it[2]] }
-    ch_provenance = ch_provenance.join(ch_fastq.map{ it -> it[0] }.combine(ch_pipeline_provenance)).map{ it -> [it[0], it[1] << it[2]] }
 
     collect_provenance(ch_provenance)
 }

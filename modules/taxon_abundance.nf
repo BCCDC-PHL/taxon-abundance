@@ -84,7 +84,7 @@ process bracken {
 
     script:
     """
-    printf -- "- process_name: bracken\\n"    >> ${sample_id}_bracken_provenance.ym
+    printf -- "- process_name: bracken\\n"    >> ${sample_id}_bracken_provenance.yml
     printf -- "  tools:\\n"                   >> ${sample_id}_bracken_provenance.yml
     printf -- "    - tool_name: bracken\\n"   >> ${sample_id}_bracken_provenance.yml
     printf -- "      tool_version: 2.6.1\\n"  >> ${sample_id}_bracken_provenance.yml
