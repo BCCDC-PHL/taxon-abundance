@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - python=3
+  - pyyaml=6.0.1
   - fastp=0.20.1
   - kraken2=2.1.2
   - bracken=2.6.1
