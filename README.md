@@ -171,41 +171,42 @@ DRR161197,4175044,4158344,417504400,408656988,385097573,378269116,359615124,3539
 DRR161199,4748928,4728502,474892800,463574412,436236542,427545934,406140193,398995239,389594,9277186
 ```
 
-If the `--versioned_outdir` is used, then a sub-directory will be created below each sample, named with the pipeline name and minor version:
-
-```
-<sample_id>
-└── taxon-abundance-v0.1-output
-    ├── <sample_id>_fastp.csv
-    ├── <sample_id>_fastp.json
-    ├── <sample_id>_kraken2_report.txt
-    ├── <sample_id>_S_bracken_abundances.csv
-    └── <sample_id>_S_top_5.csv
-```
-
 ### Provenance files
 For each pipeline invocation, each sample will produce a `provenance.yml` file with the following contents:
 
 ```yml
-- process_name: fastp
-  tool_name: fastp
-  tool_version: 0.20.1
-- process_name: kraken2
-  tool_name: kraken2
-  tool_version: 2.1.2
-  database_path: /path/to/2021-05-17_standard
-- process_name: bracken
-  tool_name: bracken
-  tool_version: 2.6.1
-  database_path: /path/to/2021-05-17_standard
-  taxonomic_level: S
-- input_filename: sample-01_R1.fastq.gz
-  sha256: 4ac3055acgf03114a005aff033e7016ea98486cbebdae169880e3f0511ed21bb
-- input_filename: sample-01_R2.fastq.gz
-  sha256: 8db388f56c51920750319c67b5308c7e99f2a566ca83311037c425f8d6bb1ecc
 - pipeline_name: BCCDC-PHL/taxon-abundance
-  pipeline_version: 0.1.0
-- timestamp_analysis_start: 2021-11-25T16:53:10.549863
+  pipeline_version: 0.1.7
+  nextflow_session_id: 9b94b531-cf38-463c-9814-c30697d3aada
+  nextflow_run_name: lonely_ride
+  timestamp_analysis_start: 2024-05-13T13:45:57.620955-07:00
+- input_filename: sample-01_R1.fastq.gz
+  sha256: 2bc7ac86b9af22533be21970e82b3b0ca36481c040a20ad70dbea65e41bbce58
+- input_filename: sample-01_R2.fastq.gz
+  sha256: 456992cfdbeb6e0be63217d54e1c0df75b0762a0bb1fe0639420a4b72200bb4a
+- process_name: fastp
+  tools:
+    - tool_name: fastp
+      tool_version: 0.20.1
+- process_name: kraken2
+  tools:
+    - tool_name: kraken2
+      tool_version: 2.1.2
+      parameters:
+        - name: confidence
+          value: 0.0  
+  databases:
+  - database_name: kraken2_standard
+    database_version: '20230605'
+- process_name: bracken
+  tools:
+    - tool_name: bracken
+      tool_version: 2.6.1
+      parameters:
+        - name: read_length
+          value: 150
+        - name: taxonomic_level
+          value: S
 ```
 
 The filename of the provenance file includes a timestamp with format `YYYYMMDDHHMMSS` to ensure that re-analysis of the same sample will create a unique `provenance.yml` file.
