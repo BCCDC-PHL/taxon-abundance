@@ -2,7 +2,6 @@ name: taxon-abundance
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
   - python=3
   - pyyaml=6.0.1
