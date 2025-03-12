@@ -12,6 +12,7 @@ for env_yaml in environments/*.yml; do
 	--freeze \
 	--await \
 	--output json \
+        --tower-token ${TOWER_ACCESS_TOKEN} \
 	| python -m json.tool \
 	| tee wave_images/${image_name}.json
     echo "done building image ${image_name}"
