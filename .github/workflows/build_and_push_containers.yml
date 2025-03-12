@@ -1,0 +1,37 @@
+name: Build and Push Container Images
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+    
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Apptainer
+        run: |
+          .github/scripts/install_apptainer.sh
+      - name: Check Apptainer installation
+        run: apptainer --version
+      - name: Install Wave CLI
+        run: |
+          .github/scripts/install_wave-cli.sh
+      - name: Check wave installation
+        run: wave --version
+      - name: Build images
+        run: |
+          .github/scripts/build_container_images_wave.sh
+      - name: Push images
+        run: |
+          echo ${GITHUB_TOKEN} | apptainer registry login -u ${GHCR_USERNAME} --password-stdin oras://ghcr.io
+          .github/scripts/push_container_images_wave.py --wave-jsons-dir wave_images --images-dir wave_images
