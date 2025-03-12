@@ -29,6 +29,8 @@ jobs:
       - name: Check wave installation
         run: wave --version
       - name: Build images
+        env:
+          TOWER_ACCESS_TOKEN: ${{ secrets.TOWER_ACCESS_TOKEN }}
         run: |
           .github/scripts/build_container_images_wave.sh
       - name: Push images
