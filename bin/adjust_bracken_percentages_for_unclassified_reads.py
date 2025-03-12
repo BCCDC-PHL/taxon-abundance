@@ -46,7 +46,11 @@ def main(args):
     bracken_abundances = parse_bracken_abundances(args.bracken_abundances)
 
     bracken_report_total_reads = list(filter(lambda x: x['taxon_name'] == 'root', bracken_report))[0]['reads_total']
-    kraken_report_unclassified_reads = list(filter(lambda x: x['taxon_name'] == 'unclassified', kraken_report))[0]['reads_this_level']
+    unclassifieds_records = list(filter(lambda x: x['taxon_name'] == 'unclassified', kraken_report))
+
+    kraken_report_unclassified_reads = 0
+    if len(unclassifieds_records) > 0:
+        kraken_report_unclassified_reads = list(filter(lambda x: x['taxon_name'] == 'unclassified', kraken_report))[0]['reads_this_level']
 
     adjusted_total_reads = bracken_report_total_reads + kraken_report_unclassified_reads
     percent_unclassified = float(kraken_report_unclassified_reads) / float(adjusted_total_reads)
