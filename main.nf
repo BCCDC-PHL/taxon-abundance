@@ -58,6 +58,10 @@ workflow {
 	extract_reads(ch_fastq.join(kraken2.out.report).combine(ch_to_extract, by: 0))
     }
 
+    if (params.extract_reads_for_taxid) {
+	extract_reads(ch_fastq.join(kraken2.out.report).combine(Channel.of(params.extract_reads_for_taxid)))
+    }
+
     if (params.collect_outputs) {
 	fastp.out.csv.map{ it -> it[1] }.collectFile(name: params.collected_outputs_prefix + "_fastp.csv", storeDir: params.outdir, keepHeader: true, skip: 1, sort: { it -> it.readLines()[1] })
 	if (!params.skip_bracken) {
