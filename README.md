@@ -80,6 +80,19 @@ nextflow run BCCDC-PHL/taxon-abundance \
   --outdir </path/to/outdir> 
 ```
 
+### Extracting Reads for a Specific Taxonomic ID
+
+In cases where only a specific taxonomic ID is of interest, the `--extract_reads_for_taxid` flag can be used.
+When using this flag, supply the taxonomic ID of interest. For example, to extract reads assigned to the genus [Mycobacteria (taxid: 1763)](https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?mode=Info&id=1763):
+
+```
+nextflow run BCCDC-PHL/taxon-abundance \
+  --fastq_input <fastq_input_dir> \
+  --extract_reads_for_taxid 1763 \
+  --outdir </path/to/outdir> 
+```
+
+
 ### Skipping Bracken
 
 By default, [bracken](https://github.com/jenniferlu717/Bracken) is used to re-estimate the read abundances for each taxonomic group,
