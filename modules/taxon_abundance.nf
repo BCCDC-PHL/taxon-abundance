@@ -36,6 +36,10 @@ process kraken2 {
 
     tag { sample_id }
 
+    memory  { (92 + (10 * (task.attempt - 0))).GB }
+    errorStrategy { (task.exitStatus == 137 && task.attempt <= maxRetries) ? 'retry' : 'ignore' } 
+    maxRetries 3
+
     publishDir "${params.outdir}/${sample_id}", mode: 'copy', pattern: "${sample_id}_kraken2_report.txt"
 
     input:
