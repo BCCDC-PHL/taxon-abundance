@@ -21,6 +21,7 @@ process fastp {
     printf -- "      tool_version: \$(fastp --version 2>&1 | cut -d ' ' -f 2)\\n" >> ${sample_id}_fastp_provenance.yml
     
     fastp \
+    --trim_poly_g \
 	-i ${reads_1} \
 	-I ${reads_2} \
 	-o ${sample_id}_trimmed_R1.fastq.gz \
